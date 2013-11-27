@@ -1,0 +1,47 @@
+#! /opt/local/bin/Rscript --vanilla
+args <- commandArgs(TRUE)
+if(length(args) != 3L)
+  stop("--red, --green, --blue must be specified.")
+
+red <- args[1]
+green <- args[2]
+blue <- args[3]
+
+for(i in args)
+  {
+    if(substr(i, 1, 5) == "--red")
+        red <- as.numeric(gsub("--red=", "", x = i))
+    if(substr(i, 1, 7) == "--green")
+        green <- as.numeric(gsub("--green=", "", x = i))
+    if(substr(i, 1, 6) == "--blue")
+        blue <- as.numeric(gsub("--blue=", "", x = i))
+  }
+
+# cf. http://www.mail-archive.com/r-help@r-project.org/msg199172.html
+
+r2c <- function() {
+    hex2dec <- function(hexnums) {
+        # suggestion of Eik Vettorazzi
+        sapply(strtoi(hexnums, 16L), function(x) x %/% 256^(2:0) %% 256)
+    }
+    findMatch <- function(dec.col) {
+        sq.dist <- colSums((hsv - dec.col)^2)
+        rbind(which.min(sq.dist), min(sq.dist))
+    }
+    colors <- colors()
+    hsv <- rgb2hsv(col2rgb(colors))
+    function(cols, near=0.25){
+        cols <- sub("^#", "", toupper(cols))
+        dec.cols <- rgb2hsv(hex2dec(cols))
+        which.col <- apply(dec.cols, 2, findMatch)
+        matches <- colors[which.col[1, ]]
+        unmatched <- which.col[2, ] > near^2
+        matches[unmatched] <- paste("#", cols[unmatched], sep="")
+        matches
+    }
+}
+
+rgb2col <- r2c()
+rgb_v <- rgb(red=red/255, green=green/255, blue=blue/255)
+col_v <- rgb2col(c(tolower(rgb_v)))
+cat(paste(tolower(col_v),"\n"))
