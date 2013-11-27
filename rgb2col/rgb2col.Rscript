@@ -1,4 +1,5 @@
 #! /opt/local/bin/Rscript --vanilla
+
 args <- commandArgs(TRUE)
 if(length(args) != 3L)
   stop("--red, --green, --blue must be specified.")
